@@ -1,13 +1,13 @@
-; rom_512.asm
-; 6502 assembly in acme syntax for for tst_6502.
-; E. Brombaugh 03-02-19
+; rom.asm
+; 4k ROM 6502 assembly in acme syntax for for tst_6502.
+; E. Brombaugh 03-03-19
 
 ; some fixed addresses in the design
 tst_ram   = $0000
 tst_gpio  = $1000
 acia_ctl  = $2000
 acia_dat  = $2001
-tst_rom   = $fe00
+tst_rom   = $f000
 cpu_nmi   = $fffa
 cpu_reset = $fffc
 cpu_irq   = $fffe

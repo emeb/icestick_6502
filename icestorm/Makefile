@@ -10,10 +10,10 @@ SRC =	icestick_6502_top.v ../src/tst_6502.v ../src/acia.v \
 		../osdvu/uart.v
 
 # preparing the machine code
-ASM =	../src/rom_512.asm
-OBJ =	rom_512.obj
-RPT =	rom_512.rpt
-HEX =	rom_512.hex
+ASM =	../src/rom.asm
+OBJ =	rom.obj
+RPT =	rom.rpt
+HEX =	rom.hex
 
 # project stuff
 PROJ = icestick_6502_top

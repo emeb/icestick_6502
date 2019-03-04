@@ -34,14 +34,14 @@ module tst_6502(
 	wire p2 = (CPU_AB[15:12] == 4'h2) ? 1 : 0;
 	wire pf = (CPU_AB[15:12] == 4'hf) ? 1 : 0;
 	
-	// RAM @ pages 00,01...
-	reg [7:0] ram_mem[511:0];
+	// RAM @ pages 00-0f
+	reg [7:0] ram_mem[4095:0];
 	reg [7:0] ram_do;
 	always @(posedge clk)
 		if((CPU_WE == 1'b1) && (p0 == 1'b1))
-			ram_mem[CPU_AB[8:0]] <= CPU_DO;
+			ram_mem[CPU_AB[11:0]] <= CPU_DO;
 	always @(posedge clk)
-		ram_do <= ram_mem[CPU_AB[8:0]];
+		ram_do <= ram_mem[CPU_AB[11:0]];
 	
 	// GPIO @ page 10-1f
 	reg [7:0] gpio_do;
@@ -67,12 +67,12 @@ module tst_6502(
 	);
 	
 	// ROM @ pages f0,f1...
-    reg [7:0] rom_mem[511:0];
+    reg [7:0] rom_mem[4095:0];
 	reg [7:0] rom_do;
 	initial
-        $readmemh("rom_512.hex",rom_mem);
+        $readmemh("rom.hex",rom_mem);
 	always @(posedge clk)
-		rom_do <= rom_mem[CPU_AB[8:0]];
+		rom_do <= rom_mem[CPU_AB[11:0]];
 
 	// data mux
 	reg [3:0] mux_sel;
