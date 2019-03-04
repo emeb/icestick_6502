@@ -1,5 +1,5 @@
 # icestick_6502
-A small 6502 system build on a Lattice Icestick FPGA development board
+A small 6502 system built on a Lattice Icestick FPGA development board
 
 ## prerequisites
 To build this you will need the following FPGA tools
@@ -10,8 +10,10 @@ To build this you will need the following FPGA tools
 
 Info on these can be found at http://www.clifford.at/icestorm/
 
-You will also need the Acme 6502 assembler which can be found at
-https://github.com/meonwax/acme
+You will also need the following 6502 tools:
+
+* cc65 6502 C compiler (for default option) https://github.com/cc65/cc65
+* Acme 6502 assembler (for assembly option) https://github.com/meonwax/acme
 
 ## Building
 
@@ -31,8 +33,7 @@ bitstream
 	make prog
 
 You should see a message printed to the terminal window and the icestick LEDs
-should start to flash in sequence. At this point you can type in the terminal
-window and see the characters echoed.
+should start to flash in sequence.
 
 ## Simulating
 
@@ -40,6 +41,8 @@ Simulation is supported and requires the following prerequisites:
 
 * Icarus Verilog simulator http://iverilog.icarus.com/
 * GTKWave waveform viewer http://gtkwave.sourceforge.net/
+
+To simulate, use the following commands
 
 	cd icarus
 	make

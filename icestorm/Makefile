@@ -1,6 +1,7 @@
 # Makefile for icestorm tools + yosys + nextpnr
 # Modified from examples in icestorm distribution
 # 03-03-19 E. Brombaugh
+# this version builds the CPU code from C
 
 # src directory
 VPATH = ../src/ ../verilog-6502/ ../osvdu/
@@ -10,9 +11,6 @@ SRC =	icestick_6502_top.v ../src/tst_6502.v ../src/acia.v \
 		../osdvu/uart.v
 
 # preparing the machine code
-ASM =	../src/rom.asm
-OBJ =	rom.obj
-RPT =	rom.rpt
 HEX =	rom.hex
 
 # project stuff
@@ -37,11 +35,9 @@ HEXDUMP_ARGS = -v -e '1/1 "%02x " "\n"'
 
 all: $(PROJ).bin
 
-$(OBJ): $(ASM)
-	$(ASM6502) -o $(OBJ) -r $(RPT) $<
-
-$(HEX): $(OBJ)
-	$(HEXDUMP) $(HEXDUMP_ARGS) $< > $@
+$(HEX):
+	$(MAKE) -C ../cc65/
+	cp ../cc65/$(HEX) .
 	
 %.json: $(SRC) $(HEX)
 	$(YOSYS) -p 'synth_ice40 -top $(PROJ) -json $@' $(SRC)
@@ -69,7 +65,8 @@ lint: $(SRC)
 	$(VERILATOR) --lint-only -Wall --top-module $(PROJ) $(TECH_LIB) $(SRC)
 
 clean:
-	rm -f $(PROJ).json $(PROJ).asc $(PROJ).rpt $(PROJ).bin *.obj $(HEX) $(RPT)
+	rm -f $(PROJ).json $(PROJ).asc $(PROJ).rpt $(PROJ).bin $(HEX)
+	$(MAKE) clean -C ../cc65/
 
 .SECONDARY:
 .PHONY: all prog clean
