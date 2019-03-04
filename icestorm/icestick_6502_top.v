@@ -15,13 +15,13 @@ module icestick_6502_top(
 	reg [7:0] reset_cnt;
 	reg reset;
 	initial
-        reset_cnt <= 6'h00;
+        reset_cnt <= 8'h00;
     
 	always @(posedge clk)
 	begin
-		if(reset_cnt != 6'hff)
+		if(reset_cnt != 8'hff)
         begin
-            reset_cnt <= reset_cnt + 6'h01;
+            reset_cnt <= reset_cnt + 8'h01;
             reset <= 1'b1;
         end
         else
