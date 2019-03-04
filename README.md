@@ -33,3 +33,22 @@ bitstream
 You should see a message printed to the terminal window and the icestick LEDs
 should start to flash in sequence. At this point you can type in the terminal
 window and see the characters echoed.
+
+## Simulating
+
+Simulation is supported and requires the following prerequisites:
+
+* Icarus Verilog simulator http://iverilog.icarus.com/
+* GTKWave waveform viewer http://gtkwave.sourceforge.net/
+
+	cd icarus
+	make
+	make wave
+
+This will build the simulation executable, run it and then view the output.
+
+## Thanks
+
+Thanks to the developers of all the tools used for this, as well as the authors
+of the IP cores I snagged for the 6502 and UART. I've added those as submodules
+so you'll know where to get them and who to give credit to.
