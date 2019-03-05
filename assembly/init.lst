@@ -1,0 +1,99 @@
+ca65 V2.17 - Git cc6559c3
+Main file   : init.s
+Current file: init.s
+
+000000r 1               ; ---------------------------------------------------------------------------
+000000r 1               ; init.s
+000000r 1               ; icestick_6502 main assembly routine
+000000r 1               ; 03-04-19 E. Brombaugh
+000000r 1               ; ---------------------------------------------------------------------------
+000000r 1               
+000000r 1               .import   _acia_tx_str
+000000r 1               .export   _init
+000000r 1               
+000000r 1               .include  "fpga.inc"
+000000r 2               ; ---------------------------------------------------------------------------
+000000r 2               ; fpga.inc
+000000r 2               ; handy info about locations in the FPGA
+000000r 2               ; 03-04-19 E. Brombaugh
+000000r 2               ; ---------------------------------------------------------------------------
+000000r 2               
+000000r 2               .define   GPIO_DATA $1000    ;  GPIO data register location
+000000r 2               .define   ACIA_CTRL $2000    ;  ACIA control register location
+000000r 2               .define   ACIA_DATA $2001    ;  ACIA data register location
+000000r 2               
+000000r 2               
+000000r 1               
+000000r 1               .zeropage
+000000r 1               
+000000r 1  00           _led_bits:      .res 1, $00        ;  Reserve a local zero page pointer
+000001r 1  00           _dly_cnt:       .res 1, $00        ;  Reserve a local zero page pointer
+000002r 1               
+000002r 1               .segment  "CODE"
+000000r 1               
+000000r 1               ; ---------------------------------------------------------------------------
+000000r 1               ; Execution starts here
+000000r 1               
+000000r 1  A2 FF        _init:     ldx #$ff             ; initiaize stack pointer
+000002r 1  9A           		   txs
+000003r 1  A9 08        		   lda #8               ; initialize led data
+000005r 1  85 rr        		   sta _led_bits
+000007r 1               
+000007r 1               ; initialize ACIA
+000007r 1  A9 03        		   lda #$03				; reset ACIA
+000009r 1  8D 00 20     		   sta ACIA_CTRL
+00000Cr 1  A9 00        		   lda #$00				; normal running
+00000Er 1  8D 00 20     		   sta ACIA_CTRL
+000011r 1               
+000011r 1               ; send startup message
+000011r 1  A9 rr                   lda # .lobyte(start_str)
+000013r 1  A2 rr        		   ldx # .hibyte(start_str)
+000015r 1  20 rr rr     		   jsr _acia_tx_str
+000018r 1               
+000018r 1               ; enable ACIA RX IRQ
+000018r 1  A9 80        		   lda #$80				; rx irq enable
+00001Ar 1  8D 00 20     		   sta ACIA_CTRL
+00001Dr 1  58           		   cli					; enable irqs
+00001Er 1               
+00001Er 1               ; main loop
+00001Er 1  A9 10        lp:        lda #16				; delay 16 outer loops
+000020r 1  20 rr rr     		   jsr delay
+000023r 1  A5 rr        		   lda _led_bits		; get LED state
+000025r 1  8D 00 10     		   sta GPIO_DATA		; save to GPIO
+000028r 1  18           		   clc					; shift left
+000029r 1  2A           		   rol
+00002Ar 1  90 02        		   bcc sld 				; reload if bit shifted out msb
+00002Cr 1  A9 08        		   lda #8
+00002Er 1  85 rr        sld:       sta _led_bits		; save new state
+000030r 1  4C rr rr     		   jmp lp				; loop forever
+000033r 1               
+000033r 1               ; ---------------------------------------------------------------------------
+000033r 1               ; delay routine
+000033r 1  85 rr        delay:     sta _dly_cnt			; save loop count
+000035r 1  8A           		   txa					; temp save x
+000036r 1  48           		   pha
+000037r 1  98           		   tya					; temp save y
+000038r 1  48           		   pha
+000039r 1  A2 00        d1:	       ldx #0				; init x loop
+00003Br 1  A0 00        d2:        ldy #0				; init y loop
+00003Dr 1  88           d3:	       dey
+00003Er 1  D0 FD        		   bne d3				; loop on y
+000040r 1  CA           		   dex
+000041r 1  D0 F8        		   bne d2				; loop on x
+000043r 1  C6 rr        		   dec _dly_cnt
+000045r 1  D0 F2        		   bne d1				; loop on loop count
+000047r 1  68           		   pla					; restore y
+000048r 1  A8           		   tay
+000049r 1  68           		   pla					; restore x
+00004Ar 1  AA           		   tax
+00004Br 1  60           		   rts
+00004Cr 1               
+00004Cr 1               .segment  "RODATA"
+000000r 1               
+000000r 1               ; ---------------------------------------------------------------------------
+000000r 1               ; startup message
+000000r 1               
+000000r 1  5C 6E 5C 6E  start_str: .asciiz "\n\n\rIcestick 6502 serial test\n\n\r"
+000004r 1  5C 72 49 63  
+000008r 1  65 73 74 69  
+000025r 1               

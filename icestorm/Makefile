@@ -39,6 +39,10 @@ $(HEX):
 	$(MAKE) -C ../cc65/
 	cp ../cc65/$(HEX) .
 	
+assembly:
+	$(MAKE) -C ../assembly/
+	cp ../assembly/$(HEX) .
+	
 %.json: $(SRC) $(HEX)
 	$(YOSYS) -p 'synth_ice40 -top $(PROJ) -json $@' $(SRC)
 
