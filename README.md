@@ -13,7 +13,6 @@ Info on these can be found at http://www.clifford.at/icestorm/
 You will also need the following 6502 tools:
 
 * cc65 6502 C compiler (for default option) https://github.com/cc65/cc65
-* Acme 6502 assembler (for assembly option) https://github.com/meonwax/acme
 
 ## Building
 
@@ -34,6 +33,17 @@ bitstream
 
 You should see a message printed to the terminal window and the icestick LEDs
 should start to flash in sequence.
+
+## CPU coding
+
+By default the build system fills the ROM with code based on the C and assembly
+source in the cc65 directory. Optionally you can use pure assembly to create
+the ROM with the following commands
+
+	make assembly
+	make
+
+within the icestorm directory. 
 
 ## Simulating
 
