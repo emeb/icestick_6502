@@ -4,23 +4,33 @@
  * based on example code from https://cc65.github.io/doc/customizing.html
  */
  
-#define GPIO     (*(unsigned char *) 0x1000)
+#include "fpga.h"
+#include "acia.h"
 
-extern void __fastcall__ rs232_tx (char *str);
-
-char *msg = "Hello World!\n\r";
+char *msg = "\n\n\rIcestick 6502 cc65 serial test\n\n\r";
+unsigned long cnt;
 unsigned char x = 0;
     
 int main()
 {
+	//  Send startup message
+	acia_tx_str(msg);
+	
+	// enable ACIA IRQ
+	ACIA_CTRL = 0x80;
+	asm("CLI");
+	
     // Run forever
     while(1)
     {
-        //  Transmit "Hello World!"
-        rs232_tx(msg);
-        
-        // write counter to GPIO
-        GPIO = x;
+		// delay
+		cnt = 4096L;
+		while(cnt--)
+		{
+		}
+		
+        // write counter msbyte to GPIO
+        GPIO_DATA = x;
         x++;
     }
 

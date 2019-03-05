@@ -1,19 +1,20 @@
 ; ---------------------------------------------------------------------------
 ; interrupt.s
+; icestick_6502 IRQ and NMI routines
+; based on example code from https://cc65.github.io/doc/customizing.html
+; 03-04-19 E. Brombaugh
 ; ---------------------------------------------------------------------------
 ;
 ; Interrupt handler.
 ;
-; Checks for a BRK instruction and returns from all valid interrupts.
+; Checks for a BRK instruction, handles ACIA RX
 
-.import   _stop
+.import   _acia_rx_chr, _acia_tx_chr
 .export   _irq_int, _nmi_int
 
-.segment  "CODE"
+.include  "fpga.inc"
 
-; EMEB 03-04-19 - removed 65C02 instructions from ISR
-;.PC02                             ; Force 65C02 assembly mode
-;
+.segment  "CODE"
 
 ; ---------------------------------------------------------------------------
 ; Non-maskable interrupt (NMI) service routine
@@ -26,17 +27,30 @@ _nmi_int:  RTI                    ; Return from all NMI interrupts
 _irq_int:  PHA                    ; Save accumulator contents to stack
            TXA                    ; Save X register contents to stack
            PHA
+		   TYA                    ; Save Y register to stack
+		   PHA
            TSX                    ; Transfer stack pointer to X
-           INX                    ; Increment X so it points to the status
-           INX                    ;   register value saved on the stack
-           LDA $100,X             ; Load status register contents
+           LDA $104,X             ; Load status register contents (SP + 4)
            AND #$10               ; Isolate B status bit
            BNE break              ; If B = 1, BRK detected
 
 ; ---------------------------------------------------------------------------
+; check ACIA for IRQ
+           LDA ACIA_CTRL
+           AND #$80               ; IRQ bit set?
+           BEQ irq                ; no - skip
+		   
+; ---------------------------------------------------------------------------
+; Echo RX char
+           JSR _acia_rx_chr       ; get RX char
+           JSR _acia_tx_chr       ; send TX char
+		   
+; ---------------------------------------------------------------------------
 ; IRQ detected, return
 
-irq:       PLA                    ; Restore X register contents
+irq:       PLA                    ; Restore Y register contents
+		   TAY
+           PLA                    ; Restore X register contents
            TAX
            PLA                    ; Restore accumulator contents
            RTI                    ; Return from all IRQ interrupts
@@ -44,5 +58,5 @@ irq:       PLA                    ; Restore X register contents
 ; ---------------------------------------------------------------------------
 ; BRK detected, stop
 
-break:     JMP _stop              ; If BRK is detected, something very bad
-                                  ;   has happened, so stop running
+break:     JMP break              ; If BRK is detected, something very bad
+                                  ;   has happened, so loop here forever

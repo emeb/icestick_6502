@@ -2,7 +2,7 @@
 # 03-04-19 E. Brombaugh
 
 # C and assy source files
-SRC =	main.c rs232_tx.s interrupt.s vectors.s wait.s
+SRC =	main.c acia.s interrupt.s vectors.s
 
 # compiler output
 OBJ = rom
