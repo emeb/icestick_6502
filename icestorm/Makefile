@@ -11,7 +11,8 @@ SRC =	icestick_6502_top.v ../src/tst_6502.v ../src/acia.v \
 		../osdvu/uart.v
 
 # preparing the machine code
-HEX =	rom.hex
+FAKE_HEX =	rom.hex
+REAL_HEX =  code.hex
 
 # project stuff
 PROJ = icestick_6502_top
@@ -26,35 +27,43 @@ NEXTPNR_ARGS = --pre-pack $(SDC)
 ICEPACK = icepack
 ICETIME = icetime
 ICEPROG = iceprog
+ICEBRAM = icebram
 CDCPROG = cdc_prog
 VERILATOR = verilator
 TECH_LIB = /usr/local/share/yosys/ice40/cells_sim.v
-ASM6502 = acme
 HEXDUMP = hexdump
 HEXDUMP_ARGS = -v -e '1/1 "%02x " "\n"'
 
 all: $(PROJ).bin
 
-$(HEX):
-	$(MAKE) -C ../cc65/
-	cp ../cc65/$(HEX) .
-	
 assembly:
 	$(MAKE) -C ../assembly/
 	cp ../assembly/$(HEX) .
 	
-%.json: $(SRC) $(HEX)
+$(FAKE_HEX):
+	$(ICEBRAM) -g 8 4096 > $(FAKE_HEX)
+
+%.json: $(SRC) $(FAKE_HEX)
 	$(YOSYS) -p 'synth_ice40 -top $(PROJ) -json $@' $(SRC)
 
 %.asc: %.json $(PIN_DEF) 
 	$(NEXTPNR) $(NEXTPNR_ARGS) --$(DEVICE) --json $< --pcf $(PIN_DEF) --asc $@
 
-%.bin: %.asc
-	$(ICEPACK) $< $@
+$(REAL_HEX):
+	$(MAKE) -C ../cc65/
+	cp ../cc65/$(FAKE_HEX) ./$(REAL_HEX)
+	
+%.bin: %.asc $(REAL_HEX)
+	$(ICEBRAM) $(FAKE_HEX) $(REAL_HEX) < $< > temp.asc
+	$(ICEPACK) temp.asc $@
 
 %.rpt: %.asc
 	$(ICETIME) -d $(DEVICE) -mtr $@ $<
 
+recode:
+	rm -f $(REAL_HEX) $(PROJ).bin
+	$(MAKE) prog
+    
 prog: $(PROJ).bin
 	$(ICEPROG) $<
     
@@ -69,7 +78,7 @@ lint: $(SRC)
 	$(VERILATOR) --lint-only -Wall --top-module $(PROJ) $(TECH_LIB) $(SRC)
 
 clean:
-	rm -f $(PROJ).json $(PROJ).asc $(PROJ).rpt $(PROJ).bin $(HEX)
+	rm -f *.json *.asc *.rpt *.bin *.hex
 	$(MAKE) clean -C ../cc65/
 
 .SECONDARY:
