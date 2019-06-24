@@ -8,7 +8,7 @@ VPATH = ../src/ ../verilog-6502/ ../osvdu/
 
 SRC =	icestick_6502_top.v ../src/tst_6502.v ../src/acia.v \
 		../verilog-6502/cpu.v ../verilog-6502/ALU.v \
-		../osdvu/uart.v
+		../src/acia_rx.v ../src/acia_tx.v
 
 # preparing the machine code
 FAKE_HEX =	rom.hex
@@ -31,15 +31,12 @@ ICEBRAM = icebram
 CDCPROG = cdc_prog
 VERILATOR = verilator
 TECH_LIB = /usr/local/share/yosys/ice40/cells_sim.v
+ASM6502 = acme
 HEXDUMP = hexdump
 HEXDUMP_ARGS = -v -e '1/1 "%02x " "\n"'
 
 all: $(PROJ).bin
 
-assembly:
-	$(MAKE) -C ../assembly/
-	cp ../assembly/$(HEX) .
-	
 $(FAKE_HEX):
 	$(ICEBRAM) -g 8 4096 > $(FAKE_HEX)
 
@@ -53,6 +50,10 @@ $(REAL_HEX):
 	$(MAKE) -C ../cc65/
 	cp ../cc65/$(FAKE_HEX) ./$(REAL_HEX)
 	
+assembly:
+	$(MAKE) -C ../assembly/
+	cp ../assembly/$(REAL_HEX) .
+	
 %.bin: %.asc $(REAL_HEX)
 	$(ICEBRAM) $(FAKE_HEX) $(REAL_HEX) < $< > temp.asc
 	$(ICEPACK) temp.asc $@
@@ -60,10 +61,6 @@ $(REAL_HEX):
 %.rpt: %.asc
 	$(ICETIME) -d $(DEVICE) -mtr $@ $<
 
-recode:
-	rm -f $(REAL_HEX) $(PROJ).bin
-	$(MAKE) prog
-    
 prog: $(PROJ).bin
 	$(ICEPROG) $<
     
@@ -74,6 +71,10 @@ sudo-prog: $(PROJ).bin
 	@echo 'Executing prog as root!!!'
 	sudo $(ICEPROG) -S -IB $<
 	
+recode:
+	rm -f $(REAL_HEX) $(PROJ).bin
+	$(MAKE) prog
+    
 lint: $(SRC)
 	$(VERILATOR) --lint-only -Wall --top-module $(PROJ) $(TECH_LIB) $(SRC)
 
